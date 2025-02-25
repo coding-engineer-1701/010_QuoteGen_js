@@ -33,8 +33,9 @@ const quoteFactory = (Quote, Author='', Date='') => {
         author: author_val,
         date: date_val,
         print_quote() {
-            // put the quote return in here
-        }
+            return `${this.quote} 
+             - ${this.author}`
+        },
     }
 
 }
@@ -47,7 +48,27 @@ methods
  - get quote
  - add quote - 
 `
+const fs = require("fs");
+
+const filepathQuoteLib = 'QuoteLibrary.json';
 
 const QuoteLibrary = {
 
+    quotes: [],
+
+    loadQuotes() {
+        if (fs.existsSync(filepathQuoteLib)) {
+            this.quotes = JSON.parse(fs.readFileSync(filepathQuoteLib, 'utf-8'))
+        }
+    },
+
+    addQuote(quote, author="", date="") {
+        const newQuote = quoteFactory(quote, author, date) ;
+        this.quotes.push(newQuote);
+        this.saveToFile()
+    },
+
+    saveToFile() {
+        fs.writeFileSync(filepathQuoteLib, JSON.stringify(this.quotes))
+    }
 }

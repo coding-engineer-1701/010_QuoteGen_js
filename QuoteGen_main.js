@@ -17,16 +17,8 @@ methods
  - print quote - will create the formatted quote
 `
 const quoteFactory = (Quote, Author='', Date='') => {
-    if (Author === '') {
-        let author_val = 'Unknown';
-    } else {
-        let author_val = Author;
-    }
-    if (Date === '') {
-        let date_val = 'Unknown';
-    } else {
-        let date_val = Date;
-    }
+    const author_val = Author || "Unknown";
+    const date_val = Date || "Unknown";
 
     return {
         quote: Quote,
@@ -34,7 +26,7 @@ const quoteFactory = (Quote, Author='', Date='') => {
         date: date_val,
         print_quote() {
             return `${this.quote} 
-             - ${this.author}`
+             - ${this.author}, date ${this.date}`;
         },
     }
 
@@ -42,14 +34,7 @@ const quoteFactory = (Quote, Author='', Date='') => {
 
 
 // Create a library of quotes with Quote and Author?
-`
-methods
- - load the quotes list from memory
- - get quote
- - add quote - 
-`
 const fs = require("fs");
-
 const filepathQuoteLib = 'QuoteLibrary.json';
 
 const QuoteLibrary = {
@@ -58,17 +43,42 @@ const QuoteLibrary = {
 
     loadQuotes() {
         if (fs.existsSync(filepathQuoteLib)) {
-            this.quotes = JSON.parse(fs.readFileSync(filepathQuoteLib, 'utf-8'))
+            const rawData = JSON.parse(fs.readFileSync(filepathQuoteLib, 'utf-8'));
+
+            // Convert plain objects back to factory objects
+            this.quotes = rawData.map(q => quoteFactory(q.quote, q.author, q.date));
         }
     },
 
     addQuote(quote, author="", date="") {
-        const newQuote = quoteFactory(quote, author, date) ;
-        this.quotes.push(newQuote);
-        this.saveToFile()
+        const exists = this.quotes.some(q => q.quote === quote && q.author === author);
+
+        if (!exists) {
+            const newQuote = quoteFactory(quote, author, date) ;
+            this.quotes.push(newQuote);
+            this.saveToFile()    
+        }
     },
 
     saveToFile() {
         fs.writeFileSync(filepathQuoteLib, JSON.stringify(this.quotes))
-    }
+    }, 
+
+    displayAll() {
+        return this.quotes.map(q => q.print_quote()).join("\n");
+    },
 }
+
+
+// Load the Quote Library
+QuoteLibrary.loadQuotes();
+// Add some quotes to the library
+QuoteLibrary.addQuote('Do, or Do Not, there is no try', 'Yoda', '')
+QuoteLibrary.addQuote("Stay hungry, stay foolish.", "Steve Jobs", 2005);
+QuoteLibrary.addQuote("In your actions, don’t procrastinate. In your conversations, don’t confuse. In your thoughts, don’t wander. In your soul, don’t be passive or aggressive. In your life, don’t be all about business.", "Marcus Aurelius")
+QuoteLibrary.addQuote("If it is not right, do not do it, if it is not true, do not say it.", "Marcus Aurelius")
+
+
+console.log(QuoteLibrary.displayAll());
+
+
